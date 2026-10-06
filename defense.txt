@@ -1,0 +1,69 @@
+booz allen
+rtx
+raytheon
+caci
+applied physics laboratory
+sierra nevada
+textron
+lockheed
+northrop
+general dynamics
+l3harris
+bae systems
+leidos
+saic
+anduril
+mitre
+sandia
+los alamos
+lawrence livermore
+oak ridge
+pacific northwest
+idaho national
+draper
+boeing
+peraton
+mantech
+parsons
+aerospace corporation
+national security agency
+federal reserve
+naval
+u.s. army
+air force
+u.s. navy
+nasa
+jet propulsion
+lincoln laboratory
+collins aerospace
+pratt
+blue origin
+spacex
+firefly
+rocket lab
+general atomics
+huntington ingalls
+bwx
+kbr
+amentum
+v2x
+sierra space
+shield ai
+epirus
+hermeus
+national renewable
+argonne
+brookhaven
+fermilab
+nist
+noaa
+fbi
+cia
+dhs
+department of defense
+missile
+palantir
+lawrence berkeley
+savannah river
+nnsa
+afrl

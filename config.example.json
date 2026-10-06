@@ -1,0 +1,29 @@
+{
+  "_comment": "Copy this file to config.json and edit. Every key is optional; these are the defaults.",
+
+  "season": "Summer 2027",
+  "source": "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json",
+  "source_repo": "SimplifyJobs/Summer2027-Internships",
+
+  "_categories": "Any of: Software, AI/ML/Data, Quant, Hardware, Product",
+  "categories": ["Software", "AI/ML/Data", "Quant"],
+
+  "_degrees": "Keep postings that accept any of these. Any of: Bachelor's, Master's, PhD, MBA, Associate's",
+  "degrees": ["Bachelor's"],
+
+  "_class_years": "Graduation years you can present yourself as. The first one is the default filter.",
+  "class_years": [2029, 2030],
+
+  "_needs_sponsorship": "true if you are an international student (F-1/J-1/OPT). Flags defense contractors, national labs and federal bodies as long shots and hides them by default.",
+  "needs_sponsorship": true,
+
+  "_expose": "Who can reach the local site. local = this computer only. tailscale = this computer + your own devices over Tailscale (what the phone widget needs). lan = every device on your network (not recommended on campus wifi).",
+  "expose": "tailscale",
+  "port": 8765,
+
+  "_site_url": "What the phone widget opens when tapped. Leave empty to use the Tailscale address automatically.",
+  "site_url": "",
+
+  "_you": "Optional first name, shown in the page subtitle.",
+  "you": ""
+}

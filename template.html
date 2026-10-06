@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F4F5F7;--surface:#FFFFFF;--ink:#1A1D24;--muted:#5C6370;--line:#D9DDE3;--line-soft:#E9ECF0;
+  --accent:#1D5C8C;--accent-soft:#E3EEF7;
+  --sw:#1D5C8C;--sw-bg:#E3EEF7;--ai:#5A3E9E;--ai-bg:#ECE6F7;--qt:#9A5B00;--qt-bg:#FBEFD9;--hw:#1F6E5C;--hw-bg:#DDF1EA;--pd:#8A3B6E;--pd-bg:#F6E3EF;
+  --warn:#B23A2A;--warn-bg:#F9E4E0;--ok:#2E7D4F;--ok-bg:#E1F2E7;
+  --row-hover:#F0F3F7;--done:#8A919C;
+  --font:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151A;--surface:#1B1F26;--ink:#E7E9ED;--muted:#9AA3AF;--line:#2C323B;--line-soft:#232830;
+    --accent:#6CA6DA;--accent-soft:#1E2E3D;
+    --sw:#8FBDE6;--sw-bg:#1E2E3D;--ai:#B9A3EA;--ai-bg:#2A2340;--qt:#E5B45B;--qt-bg:#3A2D14;--hw:#7CCDB7;--hw-bg:#15332B;--pd:#E39BC9;--pd-bg:#3A2232;
+    --warn:#E8887A;--warn-bg:#3D2020;--ok:#7CC69A;--ok-bg:#1B3327;
+    --row-hover:#20252D;--done:#6B7380;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12151A;--surface:#1B1F26;--ink:#E7E9ED;--muted:#9AA3AF;--line:#2C323B;--line-soft:#232830;
+  --accent:#6CA6DA;--accent-soft:#1E2E3D;
+  --sw:#8FBDE6;--sw-bg:#1E2E3D;--ai:#B9A3EA;--ai-bg:#2A2340;--qt:#E5B45B;--qt-bg:#3A2D14;--hw:#7CCDB7;--hw-bg:#15332B;--pd:#E39BC9;--pd-bg:#3A2232;
+  --warn:#E8887A;--warn-bg:#3D2020;--ok:#7CC69A;--ok-bg:#1B3327;
+  --row-hover:#20252D;--done:#6B7380;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45}
+a{color:var(--accent)}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 24px 64px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px;margin-bottom:20px}
+h1{font-size:26px;font-weight:700;margin:0 0 4px;letter-spacing:-0.01em;text-wrap:balance}
+.sub{color:var(--muted);max-width:62ch;margin:0}
+.sub b{color:var(--ink);font-weight:600}
+.stats{display:flex;gap:0;border:1px solid var(--line);border-radius:6px;background:var(--surface);overflow:hidden;flex-wrap:wrap}
+.stat{padding:10px 16px;border-right:1px solid var(--line);min-width:96px}
+.stat:last-child{border-right:0}
+.stat .n{font-family:var(--mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .l{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.stat.sw .n{color:var(--sw)}.stat.ai .n{color:var(--ai)}.stat.qt .n{color:var(--qt)}.stat.hw .n{color:var(--hw)}.stat.pd .n{color:var(--pd)}
+
+.note{border-left:3px solid var(--accent);background:var(--surface);padding:10px 14px;margin:0 0 18px;color:var(--muted);font-size:13px}
+.note b{color:var(--ink);font-weight:600}
+.note ul{margin:6px 0 0;padding-left:18px}
+.note li{margin:2px 0}
+
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 12px;border-bottom:1px solid var(--line);margin-bottom:6px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.group .gl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 11px;font:inherit;font-size:13px;cursor:pointer;line-height:1.2}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.search{flex:1 1 220px;min-width:180px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:6px 10px;font:inherit;font-size:13px}
+.count{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:auto;white-space:nowrap}
+label.tog{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);cursor:pointer}
+label.tog input{accent-color:var(--accent)}
+label.tog[hidden]{display:none}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;font-weight:600;white-space:nowrap}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+th .dir{font-family:var(--mono);margin-left:4px;color:var(--accent)}
+td{padding:8px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:hover td{background:var(--row-hover)}
+tr.done td{color:var(--done)}
+tr.done td a.t{color:var(--done);text-decoration:line-through}
+td.co{font-weight:600;white-space:nowrap;max-width:230px;overflow:hidden;text-overflow:ellipsis}
+td.co a{color:inherit;text-decoration:none}
+td.co a:hover{text-decoration:underline}
+a.t{font-weight:500;text-decoration:none}
+a.t:hover{text-decoration:underline}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:4px;white-space:nowrap;line-height:1.4}
+.tag.sw{background:var(--sw-bg);color:var(--sw)}.tag.ai{background:var(--ai-bg);color:var(--ai)}.tag.qt{background:var(--qt-bg);color:var(--qt)}.tag.hw{background:var(--hw-bg);color:var(--hw)}.tag.pd{background:var(--pd-bg);color:var(--pd)}
+.tag.warn{background:var(--warn-bg);color:var(--warn)}.tag.info{background:var(--accent-soft);color:var(--accent)}.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag[title],.gmuted{cursor:help}
+.flags{display:flex;flex-wrap:wrap;gap:4px}
+td.loc{color:var(--muted);max-width:260px}
+td.date{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+td.date .new{color:var(--ok);font-weight:500}
+td.chk{text-align:center;width:36px}
+td.chk input{accent-color:var(--accent);cursor:pointer}
+td.grad{white-space:nowrap}
+.gmuted{font-family:var(--mono);color:var(--muted)}
+.empty{padding:36px;text-align:center;color:var(--muted)}
+.alt{font-size:11px;color:var(--muted);margin-left:4px}
+footer{margin-top:18px;color:var(--muted);font-size:12px}
+footer a{color:var(--muted)}
+@media (max-width:720px){.wrap{padding:16px 12px 48px}.stats{width:100%}.stat{flex:1;min-width:0;padding:8px 10px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1 id="title">__TITLE__</h1>
+    <p class="sub" id="subtitle"></p>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<div class="note" id="note"></div>
+
+<div class="bar" id="bar">
+  <div class="group" id="catGroup"><span class="gl">Category</span></div>
+  <div class="group"><span class="gl">Region</span>
+    <button class="chip" data-f="reg" data-v="US" aria-pressed="true">US</button>
+    <button class="chip" data-f="reg" data-v="Non-US" aria-pressed="false">Non-US</button>
+  </div>
+  <div class="group" id="gradGroup"><span class="gl">Class of</span></div>
+  <div class="group">
+    <label class="tog"><input type="checkbox" id="onlyStated"> Only postings that state a year</label>
+    <label class="tog" id="hideUsLabel"><input type="checkbox" id="hideUs" checked> Hide citizenship-likely</label>
+    <label class="tog"><input type="checkbox" id="hideCoop"> Hide co-ops</label>
+    <label class="tog"><input type="checkbox" id="hideDone"> Hide applied</label>
+  </div>
+  <input class="search" id="q" type="search" placeholder="Search company, title or city">
+  <span class="count" id="count"></span>
+</div>
+
+<div class="tablewrap">
+<table>
+  <thead><tr>
+    <th title="Mark as applied (saved in this browser)">✓</th>
+    <th class="sortable" data-k="company">Company<span class="dir"></span></th>
+    <th>Role</th>
+    <th class="sortable" data-k="category">Category<span class="dir"></span></th>
+    <th>Locations</th>
+    <th class="sortable" data-k="posted">Posted<span class="dir"></span></th>
+    <th title="Graduation years the posting says it accepts. Hover a value to read the sentence it came from.">Class of</th>
+    <th>Flags</th>
+  </tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<div class="empty" id="empty" hidden>Nothing matches these filters.</div>
+</div>
+<footer id="footer"></footer>
+</div>
+
+<script>
+const CONFIG = __CONFIG__;
+const DATA = __DATA__;
+const CATCLS = {"Software":"sw","AI/ML/Data":"ai","Quant":"qt","Hardware":"hw","Product":"pd"};
+const FLAGTXT = {
+  "likely-us-person":["Citizenship likely","warn"],
+  "citizenship-required":["Citizenship required","warn"],
+  "no-sponsorship":["No sponsorship","warn"],
+  "co-op":["Co-op","info"],
+  "undergrad-specific":["Undergrad program","ok"],
+  "early-program":["Early program","ok"],
+  "senior-title":["Senior title","info"]
+};
+const BLOCKING = ["likely-us-person","citizenship-required","no-sponsorship"];
+const NEW_DAYS = 14;
+const NS = "intern-radar:" + CONFIG.season;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// ---- text that depends on the config -------------------------------------
+document.getElementById("subtitle").innerHTML =
+  `${esc(CONFIG.categories.join(", "))} internships from the <b>${esc(CONFIG.source_repo)}</b> list, filtered to what ${CONFIG.you ? esc(CONFIG.you) + " can" : "you can"} apply to: still open, ${esc(CONFIG.season)} term, ${esc(CONFIG.degrees.join("/"))}-eligible${CONFIG.needs_sponsorship ? ", no citizenship requirement" : ""}. Snapshot taken <b>${esc(CONFIG.snapshot)}</b>.`;
+document.getElementById("note").innerHTML = `
+  <b>How this was filtered.</b> Source data is the repo's listings file. Kept: active, visible, term includes ${esc(CONFIG.season)}, category ${esc(CONFIG.categories.join(" / "))}, degrees include ${esc(CONFIG.degrees.join(" or "))}. Duplicate company + title rows were merged. Two things the list cannot verify for you:
+  <ul>
+    ${CONFIG.needs_sponsorship ? `<li><b>Citizenship likely</b> marks defense contractors, national labs and federal bodies where postings almost always require US citizenship or a clearance even when the list does not say so. If you need sponsorship, treat those as long shots and check the posting.</li>` : ""}
+    <li><b>Class of</b> comes from scanning each posting's own page for graduation-year and school-year wording (a sentence like "graduating between December 2028 and June 2029" or "rising juniors"). It is a regex read, not a human one: hover the value to see the sentence, and trust the posting over the tag. Postings with no such sentence show a dash and are kept unless you tick "Only postings that state a year"; a question mark means the page could not be read (TikTok, ByteDance, iCIMS, Oracle and a few others render with JavaScript).</li>
+  </ul>`;
+document.getElementById("footer").innerHTML =
+  `Data: <a href="https://github.com/${esc(CONFIG.source_repo)}">${esc(CONFIG.source_repo)}</a>, listings.json on the dev branch. Built with <a href="https://github.com/zxpeng2007/intern-radar">intern-radar</a>. Applied checkmarks are stored only in this browser.`;
+document.getElementById("hideUsLabel").hidden = !CONFIG.needs_sponsorship;
+
+const catGroup = document.getElementById("catGroup");
+for (const c of CONFIG.categories) {
+  const b = document.createElement("button");
+  b.className = "chip"; b.dataset.f = "cat"; b.dataset.v = c; b.textContent = c;
+  catGroup.appendChild(b);
+}
+const gradGroup = document.getElementById("gradGroup");
+for (const y of CONFIG.class_years.concat(["any"])) {
+  const b = document.createElement("button");
+  b.className = "chip"; b.dataset.f = "grad"; b.dataset.v = y; b.textContent = y === "any" ? "Any" : y;
+  gradGroup.appendChild(b);
+}
+gradGroup.hidden = CONFIG.class_years.length === 0;
+
+// ---- state ------------------------------------------------------------------
+let done = {};
+try { done = JSON.parse(localStorage.getItem(NS + ":applied") || "{}") || {}; } catch(e) { done = {}; }
+function saveDone(){ try { localStorage.setItem(NS + ":applied", JSON.stringify(done)); } catch(e){} }
+
+const state = { cat:new Set(CONFIG.categories), reg:new Set(["US"]), grad:CONFIG.class_years[0] || "any", onlyStated:false, hideUs:CONFIG.needs_sponsorship, hideCoop:false, hideDone:false, q:"", sortK:"company", sortDir:1 };
+try {
+  const s = JSON.parse(localStorage.getItem(NS + ":filters") || "null");
+  if (s) {
+    state.cat = new Set((s.cat || []).filter(c => CONFIG.categories.includes(c)));
+    if (state.cat.size === 0) state.cat = new Set(CONFIG.categories);
+    state.reg = new Set(s.reg || ["US"]);
+    state.grad = (CONFIG.class_years.includes(s.grad) || s.grad === "any") ? s.grad : state.grad;
+    state.onlyStated = !!s.onlyStated; state.hideUs = !!s.hideUs; state.hideCoop = !!s.hideCoop; state.hideDone = !!s.hideDone;
+    state.sortK = s.sortK || "company"; state.sortDir = s.sortDir || 1;
+  }
+} catch(e){}
+function saveFilters(){ try { localStorage.setItem(NS + ":filters", JSON.stringify({cat:[...state.cat],reg:[...state.reg],grad:state.grad,onlyStated:state.onlyStated,hideUs:state.hideUs,hideCoop:state.hideCoop,hideDone:state.hideDone,sortK:state.sortK,sortDir:state.sortDir})); } catch(e){} }
+
+// ---- helpers ----------------------------------------------------------------
+function gradOk(d, year){
+  if (year === "any" || d.grad !== "stated") return true;
+  const y = +year;
+  return d.grad_min <= y && y <= d.grad_max;
+}
+function gradCell(d, year){
+  if (d.grad === "stated") {
+    const label = d.grad_max >= 2032 ? `${d.grad_min}+` : (d.grad_min === d.grad_max ? String(d.grad_min) : `${d.grad_min}–${d.grad_max}`);
+    const cls = year === "any" ? "info" : (gradOk(d, year) ? "ok" : "warn");
+    return `<span class="tag ${cls}" title="${esc(d.grad_note)}">${label}</span>`;
+  }
+  if (d.grad === "unspecified") return `<span class="gmuted" title="Posting read; no graduation-year wording found">—</span>`;
+  return `<span class="gmuted" title="Posting page could not be read (${esc(d.grad_note || "not scanned")})">?</span>`;
+}
+const blocked = d => d.flags.some(f => BLOCKING.includes(f));
+
+function visible(){
+  const q = state.q.trim().toLowerCase();
+  return DATA.filter(d => {
+    if (!state.cat.has(d.category)) return false;
+    if (!state.reg.has(d.region)) return false;
+    if (!gradOk(d, state.grad)) return false;
+    if (state.onlyStated && d.grad !== "stated") return false;
+    if (state.hideUs && blocked(d)) return false;
+    if (state.hideCoop && d.flags.includes("co-op")) return false;
+    if (state.hideDone && done[d.id]) return false;
+    if (q) {
+      const hay = (d.company + " " + d.title + " " + d.locations.join(" ")).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b) => {
+    const k = state.sortK;
+    let va = a[k], vb = b[k];
+    if (k === "company") { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+    if (va < vb) return -1*state.sortDir;
+    if (va > vb) return 1*state.sortDir;
+    return a.company.toLowerCase() < b.company.toLowerCase() ? -1 : 1;
+  });
+}
+
+function render(){
+  const rows = visible();
+  document.getElementById("rows").innerHTML = rows.map(d => {
+    const alt = d.alt_urls && d.alt_urls.length ? d.alt_urls.map((u,i)=>`<a class="alt" href="${esc(u)}" target="_blank" rel="noopener">alt ${i+1}</a>`).join("") : "";
+    const flags = d.flags.map(f => { const t = FLAGTXT[f] || [f,"info"]; return `<span class="tag ${t[1]}">${esc(t[0])}</span>`; }).join("");
+    const isNew = d.age_days <= NEW_DAYS;
+    return `<tr data-id="${esc(d.id)}" class="${done[d.id] ? "done" : ""}">
+      <td class="chk"><input type="checkbox" aria-label="Applied" ${done[d.id] ? "checked" : ""}></td>
+      <td class="co">${d.company_url ? `<a href="${esc(d.company_url)}" target="_blank" rel="noopener" title="${esc(d.company)}">${esc(d.company)}</a>` : esc(d.company)}</td>
+      <td><a class="t" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a>${alt}</td>
+      <td><span class="tag ${CATCLS[d.category]||"info"}">${esc(d.category)}</span></td>
+      <td class="loc">${esc(d.locations.join(" · "))}</td>
+      <td class="date">${esc(d.posted)}${isNew ? ' <span class="new">new</span>' : ""}</td>
+      <td class="grad">${gradCell(d, state.grad)}</td>
+      <td><div class="flags">${flags}</div></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("empty").hidden = rows.length > 0;
+  const applied = rows.filter(d => done[d.id]).length;
+  document.getElementById("count").textContent = `${rows.length} of ${DATA.length} shown` + (applied ? ` · ${applied} applied` : "");
+  document.querySelectorAll("th.sortable").forEach(th => {
+    th.querySelector(".dir").textContent = th.dataset.k === state.sortK ? (state.sortDir === 1 ? "↑" : "↓") : "";
+  });
+}
+
+function renderStats(){
+  const us = DATA.filter(d => d.region === "US" && !blocked(d));
+  const tiles = [`<div class="stat"><div class="n">${us.length}</div><div class="l">US, open to you</div></div>`];
+  for (const c of CONFIG.categories) {
+    tiles.push(`<div class="stat ${CATCLS[c]||""}"><div class="n">${us.filter(d => d.category === c).length}</div><div class="l">${esc(c)}</div></div>`);
+  }
+  tiles.push(`<div class="stat"><div class="n">${us.filter(d => d.age_days <= NEW_DAYS).length}</div><div class="l">Posted ≤14 days</div></div>`);
+  tiles.push(`<div class="stat"><div class="n">${us.filter(d => d.grad === "stated").length}</div><div class="l">State a class year</div></div>`);
+  document.getElementById("stats").innerHTML = tiles.join("");
+}
+
+function syncControls(){
+  document.querySelectorAll(".chip").forEach(b => {
+    const on = b.dataset.f === "grad" ? String(state.grad) === b.dataset.v : state[b.dataset.f].has(b.dataset.v);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  document.getElementById("onlyStated").checked = state.onlyStated;
+  document.getElementById("hideUs").checked = state.hideUs;
+  document.getElementById("hideCoop").checked = state.hideCoop;
+  document.getElementById("hideDone").checked = state.hideDone;
+}
+
+document.getElementById("bar").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  if (b.dataset.f === "grad") { state.grad = b.dataset.v; }
+  else { const set = state[b.dataset.f]; if (set.has(b.dataset.v)) set.delete(b.dataset.v); else set.add(b.dataset.v); }
+  syncControls(); saveFilters(); render();
+});
+["onlyStated","hideUs","hideCoop","hideDone"].forEach(id => document.getElementById(id).addEventListener("change", e => { state[id] = e.target.checked; saveFilters(); render(); }));
+document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; render(); });
+document.querySelectorAll("th.sortable").forEach(th => th.addEventListener("click", () => {
+  if (state.sortK === th.dataset.k) state.sortDir *= -1; else { state.sortK = th.dataset.k; state.sortDir = th.dataset.k === "posted" ? -1 : 1; }
+  saveFilters(); render();
+}));
+document.getElementById("rows").addEventListener("change", e => {
+  const cb = e.target; if (cb.type !== "checkbox") return;
+  const tr = cb.closest("tr"); const id = tr.dataset.id;
+  if (cb.checked) done[id] = 1; else delete done[id];
+  saveDone(); tr.classList.toggle("done", cb.checked);
+  if (state.hideDone) render(); else { const n = visible().filter(d => done[d.id]).length; document.getElementById("count").textContent = `${visible().length} of ${DATA.length} shown` + (n ? ` · ${n} applied` : ""); }
+});
+
+renderStats(); syncControls(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# your personal settings
+config.json
+
+# generated data (rebuilt by refresh.py / scrape_gradyear.py)
+listings.json
+current_rows.json
+gradyear_cache.json
+gradyear_texts.json
+index.html
+widget.json
+listings.csv
+*.log
+
+# python
+__pycache__/
+*.pyc
+.venv/
