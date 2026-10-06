@@ -1,12 +1,21 @@
 # Intern Radar
 
-A personal internship tracker that runs on your own laptop. It takes the
-[SimplifyJobs internship list](https://github.com/SimplifyJobs/Summer2027-Internships)
-(the big GitHub README everyone refreshes), keeps only the postings **you** can
-actually apply to, and gives you a filterable page, a CSV, and an iPhone
-home-screen widget that updates itself.
+A personal internship tracker that runs on your own laptop. It pulls postings
+from the big GitHub lists ([SimplifyJobs](https://github.com/SimplifyJobs/Summer2027-Internships),
+[vanshb03](https://github.com/vanshb03/Summer2027-Internships),
+[speedyapply](https://github.com/speedyapply/2027-SWE-College-Jobs)) **and**
+straight from employers' own job boards, merges the duplicates, keeps only the
+postings **you** can actually apply to, and gives you a filterable page, a
+CSV, and an iPhone home-screen widget that updates itself.
 
-What it filters that the README can't:
+What it does that refreshing a README can't:
+
+- **More than one list, plus the source.** The GitHub lists are hand-curated
+  and lag employers by days. Intern Radar also reads the public job-board APIs
+  of fifty-odd companies (Greenhouse, Lever, Ashby), so a Stripe or Jane
+  Street posting shows up the hour it goes live, tagged *Employer board* until
+  a list catches up. Add any company whose careers page runs on one of those
+  three ATSes by dropping its slug into the config.
 
 - **Your class year.** Postings rarely say "class of 2029" in the title, but
   many say it on the apply page ("graduating between December 2027 and June
@@ -51,11 +60,41 @@ Edit `config.json`:
 | `degrees` | Keep postings open to any of these: `Bachelor's`, `Master's`, `PhD`, `MBA`. |
 | `class_years` | Graduation years you can honestly present as, e.g. `[2029, 2030]`. The first is the default filter. |
 | `needs_sponsorship` | `true` if you're on F-1/J-1 or will need a visa. Turns on the citizenship flags. |
+| `sources` | Which lists and job boards to pull from. See *Sources* below. |
 | `expose` | `local` (this computer only), `tailscale` (this computer + your own phone), or `lan`. See below. |
 | `port` | Default `8765`. |
 
 Run `python refresh.py --offline` after changing filters to rebuild without
 re-downloading.
+
+## Sources
+
+Everything comes from public data that the list maintainers and employers
+publish for exactly this purpose. No logins, no scraping behind a wall.
+
+| Kind | Config key | What it reads |
+|---|---|---|
+| Simplify | `"simplify": true` | SimplifyJobs' `listings.json`: the richest source, with category, degree and sponsorship fields |
+| Other lists with the same JSON | `"listing_json": ["vanshb03/Summer2027-Internships"]` | Any repo that ships a Simplify-style `listings.json` |
+| README tables | `"readme": ["speedyapply/2027-SWE-College-Jobs"]` | Any PittCSC-style markdown table (company, role, location, link, age). A full URL to a README also works |
+| Employer boards | `"boards": {"greenhouse": [...], "lever": [...], "ashby": [...]}` | The company's own postings via the ATS's public JSON API |
+
+For a board, the slug is the word after the company in its job-board URL:
+`boards.greenhouse.io/**figma**`, `jobs.lever.co/**palantir**`,
+`jobs.ashbyhq.com/**notion**`. Write it as `"figma=Figma"` to control how the
+company is labelled. The example config ships with about fifty boards that
+had internship postings when it was written; delete the ones you don't care
+about and add your targets. A board that returns nothing is reported in the
+refresh output, not treated as an error.
+
+The same posting seen in several places is merged (by apply URL, then by
+company + title). Simplify's hand-entered fields win where they exist; the
+earliest posting date wins; every source is remembered and shown on hover.
+Two tags help you read the result:
+
+- **Employer board** — only the company's own board has it so far.
+- **Season assumed** — the posting names no season at all, so it is assumed to
+  be yours. Check before applying.
 
 ## What you get
 
@@ -137,7 +176,8 @@ few others) cannot be read and show `?`.
 
 | File | Purpose |
 |---|---|
-| `refresh.py` | download, filter, merge, write the outputs |
+| `sources.py` | fetch and normalise every source; merge duplicates |
+| `refresh.py` | filter, flag, write the outputs |
 | `scrape_gradyear.py` | read posting pages for class-year wording (`--reanalyze` reruns the regex on cached text, `--force` refetches) |
 | `autorefresh.py` | the two above in one unattended run, logged to `refresh.log` |
 | `serve.py` | tiny server; binds loopback and, if configured, your Tailscale address |

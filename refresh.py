@@ -32,6 +32,7 @@ DEFAULTS = {
     "degrees": ["Bachelor's"],
     "class_years": [2029, 2030],
     "needs_sponsorship": True,
+    "sources": {"simplify": True, "listing_json": [], "readme": [], "boards": {}},
     "expose": "tailscale",
     "port": 8765,
     "site_url": "",
@@ -73,21 +74,33 @@ DEGREES = set(CONFIG["degrees"])
 
 NONUS = re.compile(r"\b(canada|uk|india|china|japan|germany|australia|singapore|ireland|netherlands|france|israel|mexico|brazil|switzerland|spain|italy|poland|sweden|denmark|hong kong|taiwan|korea|vietnam|philippines|malaysia|uae|dubai|belgium|austria|portugal|czech|hungary|romania|norway|finland|new zealand|argentina|colombia|chile|south africa|egypt|turkey|england|scotland|wales)\b")
 US_STATES = set("AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split())
+US_STATE_NAMES = {s.lower() for s in (
+    "Alabama Alaska Arizona Arkansas California Colorado Connecticut Delaware Florida Georgia Hawaii Idaho Illinois Indiana Iowa "
+    "Kansas Kentucky Louisiana Maine Maryland Massachusetts Michigan Minnesota Mississippi Missouri Montana Nebraska Nevada "
+    "Ohio Oklahoma Oregon Pennsylvania Tennessee Texas Utah Vermont Virginia Washington Wisconsin Wyoming".split()
+)} | {"new hampshire", "new jersey", "new mexico", "new york", "north carolina", "north dakota", "rhode island",
+      "south carolina", "south dakota", "west virginia", "district of columbia"}
 US_WORDS = {"nyc", "sf", "la", "south sf", "remote", "united states", "remote in usa", "remote in us", "usa", "us",
-            "minnesota", "california", "texas", "new york", "washington", "virginia", "new jersey", "massachusetts", "illinois"}
+            "remote - us", "remote (us)", "us remote", "remote, us", "remote - united states", "remote (united states)", "bay area", "silicon valley"} | US_STATE_NAMES
 
 with open(os.path.join(HERE, "defense.txt"), encoding="utf-8") as f:
     DEFENSE = re.compile(r"\b(" + "|".join(re.escape(w.strip()) for w in f if w.strip() and not w.startswith("#")) + r")\b")
 
 
 def is_us(loc):
+    # "Hybrid - New York, NY (HQ)", "San Francisco, CA +2" -> "New York, NY", "San Francisco, CA"
+    loc = re.sub(r"^(hybrid|remote|on-?site|in-?office)\s*[-:–]\s*", "", loc.strip(), flags=re.I)
+    loc = re.sub(r"\s*\(.*?\)\s*$|\s*\+\d+\s*$", "", loc).strip()
     ll = loc.lower().strip()
-    if ll in US_WORDS or "remote in usa" in ll or "remote in us" in ll:
+    if ll in US_WORDS or "remote in usa" in ll or "remote in us" in ll or "united states" in ll or ll.endswith(", usa"):
         return True
     if NONUS.search(ll):
         return False
-    m = re.search(r", ([A-Z]{2})$", loc.strip())
-    return bool(m and m.group(1) in US_STATES)
+    m = re.search(r", ([A-Z]{2})(?: \d{5})?$", loc.strip())
+    if m and m.group(1) in US_STATES:
+        return True
+    tail = ll.rsplit(",", 1)[-1].strip()
+    return tail in US_STATE_NAMES
 
 
 # ---------------------------------------------------------------------------
@@ -95,29 +108,60 @@ def is_us(loc):
 # ---------------------------------------------------------------------------
 
 def load(offline):
+    """Fetch every configured source (see sources.py) and merge duplicates.
+
+    The merged result is cached in listings.json so --offline and a failed
+    download both have something to rebuild from.
+    """
+    import sources
     path = os.path.join(HERE, "listings.json")
     if not offline:
-        print("Downloading", CONFIG["source"])
-        req = urllib.request.Request(CONFIG["source"], headers={"User-Agent": "intern-radar"})
-        with urllib.request.urlopen(req, timeout=60) as r, open(path, "wb") as out:
-            out.write(r.read())
+        records, report = sources.fetch_all(CONFIG)
+        ok = {k: v for k, v in report.items() if not isinstance(v, str)}
+        failed = {k: v for k, v in report.items() if isinstance(v, str)}
+        print(f"Fetched {sum(ok.values())} postings from {len(ok)} sources" + (f"; {len(failed)} failed" if failed else ""))
+        if not ok:
+            raise RuntimeError("every source failed: " + "; ".join(f"{k}: {v}" for k, v in failed.items()))
+        merged = sources.merge(records)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump({"fetched_at": datetime.datetime.now().isoformat(timespec="seconds"), "report": report, "records": merged}, f, ensure_ascii=False)
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    if isinstance(data, list):  # cache written before multi-source support: a raw Simplify list
+        return sources.merge(_simplify_raw(data))
+    return data["records"]
 
 
-def build(raw):
+def _simplify_raw(raw):
+    """Normalize an old-style cached Simplify list (kept for one upgrade cycle)."""
+    import sources
+    out = []
+    for x in raw:
+        title = sources.norm_title(x.get("title"))
+        out.append(dict(id=x.get("id"), source="simplify", company=x.get("company_name", ""), title=title,
+                        url=x.get("url", ""), company_url=x.get("company_url", ""), locations=x.get("locations", []),
+                        posted=int(x.get("date_posted") or 0), terms=list(x.get("terms", [])), season_assumed=False,
+                        category=sources.SIMPLIFY_CATEGORY.get(x.get("category")) or sources.infer_category(title),
+                        degrees=list(x.get("degrees", [])), sponsorship=x.get("sponsorship", "Other"),
+                        active=bool(x.get("active") and x.get("is_visible", True))))
+    return out
+
+
+def build(records):
     now = datetime.datetime.now()
     season = CONFIG["season"]
     rows = []
-    for x in raw:
-        cat = CATEGORY_ALIASES.get(x.get("category"))
-        if not (x.get("active") and x.get("is_visible") and season in x.get("terms", []) and cat in WANTED):
+    for x in records:
+        cat = x.get("category")
+        if not (x.get("active") and cat in WANTED):
             continue
-        degrees = x.get("degrees", [])
+        if season not in (x.get("terms") or []):
+            continue
+        degrees = x.get("degrees") or []
         if degrees and not DEGREES & set(degrees):
             continue
-        title = x["title"].replace("–", "-").replace("�C", "-")
-        tl, cl = title.lower(), x["company_name"].lower()
+        title = x["title"]
+        tl, cl = title.lower(), x["company"].lower()
         flags = []
         if x.get("sponsorship") == "U.S. Citizenship is Required" or re.search(r"citizen|clearance|top secret|ts/sci", tl):
             flags.append("citizenship-required")
@@ -133,13 +177,19 @@ def build(raw):
             flags.append("early-program")
         if tl.split() and tl.split()[0] == "senior":
             flags.append("senior-title")
-        locs = x.get("locations", [])
+        if x.get("season_assumed"):
+            flags.append("season-assumed")
+        srcs = x.get("sources") or [x.get("source", "")]
+        if "simplify" not in srcs:
+            flags.append("direct" if any(s.split(":")[0] in ("greenhouse", "lever", "ashby") for s in srcs) else "other-list")
+        locs = x.get("locations") or []
         region = "US" if any(is_us(l) for l in locs) else ("Unknown" if not locs else "Non-US")
-        posted = datetime.datetime.fromtimestamp(x["date_posted"])
-        rows.append(dict(id=x["id"], company=x["company_name"], title=title, category=cat,
+        posted = datetime.datetime.fromtimestamp(x.get("posted") or now.timestamp())
+        rows.append(dict(id=x["id"], company=x["company"], title=title, category=cat,
                          locations=list(locs), region=region, url=x["url"], company_url=x.get("company_url", ""),
-                         posted=posted.strftime("%Y-%m-%d"), age_days=(now - posted).days, flags=flags))
-    # Merge duplicate company + title rows (same job posted per city).
+                         alt_urls=list(x.get("alt_urls") or []), sources=list(srcs),
+                         posted=posted.strftime("%Y-%m-%d"), age_days=max(0, (now - posted).days), flags=flags))
+    # Merge duplicate company + title rows that survived (same job posted per city).
     merged = {}
     for o in rows:
         k = (o["company"].lower(), o["title"].lower())
@@ -148,8 +198,11 @@ def build(raw):
             for l in o["locations"]:
                 if l not in m["locations"]:
                     m["locations"].append(l)
-            if o["url"] != m["url"]:
-                m.setdefault("alt_urls", []).append(o["url"])
+            if o["url"] != m["url"] and o["url"] not in m["alt_urls"]:
+                m["alt_urls"].append(o["url"])
+            for s in o["sources"]:
+                if s not in m["sources"]:
+                    m["sources"].append(s)
             if o["region"] == "US":
                 m["region"] = "US"
             if o["posted"] > m["posted"]:
@@ -157,6 +210,9 @@ def build(raw):
         else:
             merged[k] = o
     res = list(merged.values())
+    for o in res:
+        if not o["alt_urls"]:
+            del o["alt_urls"]
     res.sort(key=lambda o: (o["region"] != "US", o["category"], o["company"].lower(), o["title"]))
     return res
 
@@ -276,6 +332,12 @@ def write_widget(res):
     return payload
 
 
+def _source_count():
+    s = CONFIG.get("sources") or {}
+    boards = s.get("boards") or {}
+    return int(bool(s.get("simplify", True))) + len(s.get("listing_json") or []) + len(s.get("readme") or []) + sum(len(v or []) for v in boards.values())
+
+
 def write(res):
     with open(os.path.join(HERE, "current_rows.json"), "w", encoding="utf-8") as f:
         json.dump([{"id": r["id"], "url": r["url"], "company": r["company"], "title": r["title"]} for r in res], f)
@@ -290,6 +352,7 @@ def write(res):
         "needs_sponsorship": CONFIG["needs_sponsorship"],
         "you": CONFIG["you"],
         "snapshot": datetime.date.today().isoformat(),
+        "source_count": _source_count(),
     }
     safe = lambda s: s.replace("</", "<\\/")
     with open(os.path.join(HERE, "template.html"), encoding="utf-8") as f:

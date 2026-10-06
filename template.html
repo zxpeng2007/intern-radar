@@ -157,7 +157,10 @@ const FLAGTXT = {
   "co-op":["Co-op","info"],
   "undergrad-specific":["Undergrad program","ok"],
   "early-program":["Early program","ok"],
-  "senior-title":["Senior title","info"]
+  "senior-title":["Senior title","info"],
+  "direct":["Employer board","ok"],
+  "other-list":["Other list","info"],
+  "season-assumed":["Season assumed","info"]
 };
 const BLOCKING = ["likely-us-person","citizenship-required","no-sponsorship"];
 const NEW_DAYS = 14;
@@ -166,11 +169,12 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">"
 
 // ---- text that depends on the config -------------------------------------
 document.getElementById("subtitle").innerHTML =
-  `${esc(CONFIG.categories.join(", "))} internships from the <b>${esc(CONFIG.source_repo)}</b> list, filtered to what ${CONFIG.you ? esc(CONFIG.you) + " can" : "you can"} apply to: still open, ${esc(CONFIG.season)} term, ${esc(CONFIG.degrees.join("/"))}-eligible${CONFIG.needs_sponsorship ? ", no citizenship requirement" : ""}. Snapshot taken <b>${esc(CONFIG.snapshot)}</b>.`;
+  `${esc(CONFIG.categories.join(", "))} internships from <b>${esc(CONFIG.source_repo)}</b>${CONFIG.source_count > 1 ? ` and ${CONFIG.source_count - 1} other sources (other GitHub lists and employers' own job boards)` : ""}, filtered to what ${CONFIG.you ? esc(CONFIG.you) + " can" : "you can"} apply to: still open, ${esc(CONFIG.season)} term, ${esc(CONFIG.degrees.join("/"))}-eligible${CONFIG.needs_sponsorship ? ", no citizenship requirement" : ""}. Snapshot taken <b>${esc(CONFIG.snapshot)}</b>.`;
 document.getElementById("note").innerHTML = `
   <b>How this was filtered.</b> Source data is the repo's listings file. Kept: active, visible, term includes ${esc(CONFIG.season)}, category ${esc(CONFIG.categories.join(" / "))}, degrees include ${esc(CONFIG.degrees.join(" or "))}. Duplicate company + title rows were merged. Two things the list cannot verify for you:
   <ul>
     ${CONFIG.needs_sponsorship ? `<li><b>Citizenship likely</b> marks defense contractors, national labs and federal bodies where postings almost always require US citizenship or a clearance even when the list does not say so. If you need sponsorship, treat those as long shots and check the posting.</li>` : ""}
+    ${CONFIG.source_count > 1 ? `<li><b>Employer board</b> marks a posting that only an employer's own Greenhouse / Lever / Ashby board has so far, not any list. <b>Season assumed</b> means that posting names no season, so it is assumed to be ${esc(CONFIG.season)}; check before applying.</li>` : ""}
     <li><b>Class of</b> comes from scanning each posting's own page for graduation-year and school-year wording (a sentence like "graduating between December 2028 and June 2029" or "rising juniors"). It is a regex read, not a human one: hover the value to see the sentence, and trust the posting over the tag. Postings with no such sentence show a dash and are kept unless you tick "Only postings that state a year"; a question mark means the page could not be read (TikTok, ByteDance, iCIMS, Oracle and a few others render with JavaScript).</li>
   </ul>`;
 document.getElementById("footer").innerHTML =
@@ -256,7 +260,8 @@ function render(){
   const rows = visible();
   document.getElementById("rows").innerHTML = rows.map(d => {
     const alt = d.alt_urls && d.alt_urls.length ? d.alt_urls.map((u,i)=>`<a class="alt" href="${esc(u)}" target="_blank" rel="noopener">alt ${i+1}</a>`).join("") : "";
-    const flags = d.flags.map(f => { const t = FLAGTXT[f] || [f,"info"]; return `<span class="tag ${t[1]}">${esc(t[0])}</span>`; }).join("");
+    const srcTitle = (d.sources || []).join(", ");
+    const flags = d.flags.map(f => { const t = FLAGTXT[f] || [f,"info"]; return `<span class="tag ${t[1]}" title="${esc(f === "direct" || f === "other-list" ? srcTitle : (f === "season-assumed" ? "The posting names no season; assumed " + CONFIG.season : ""))}">${esc(t[0])}</span>`; }).join("");
     const isNew = d.age_days <= NEW_DAYS;
     return `<tr data-id="${esc(d.id)}" class="${done[d.id] ? "done" : ""}">
       <td class="chk"><input type="checkbox" aria-label="Applied" ${done[d.id] ? "checked" : ""}></td>
@@ -285,6 +290,8 @@ function renderStats(){
   }
   tiles.push(`<div class="stat"><div class="n">${us.filter(d => d.age_days <= NEW_DAYS).length}</div><div class="l">Posted ≤14 days</div></div>`);
   tiles.push(`<div class="stat"><div class="n">${us.filter(d => d.grad === "stated").length}</div><div class="l">State a class year</div></div>`);
+  const direct = us.filter(d => d.flags.includes("direct")).length;
+  if (direct) tiles.push(`<div class="stat"><div class="n">${direct}</div><div class="l">Employer boards only</div></div>`);
   document.getElementById("stats").innerHTML = tiles.join("");
 }
 

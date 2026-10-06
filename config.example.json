@@ -2,13 +2,11 @@
   "_comment": "Copy this file to config.json and edit. Every key is optional; these are the defaults.",
 
   "season": "Summer 2027",
-  "source": "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json",
-  "source_repo": "SimplifyJobs/Summer2027-Internships",
 
   "_categories": "Any of: Software, AI/ML/Data, Quant, Hardware, Product",
   "categories": ["Software", "AI/ML/Data", "Quant"],
 
-  "_degrees": "Keep postings that accept any of these. Any of: Bachelor's, Master's, PhD, MBA, Associate's",
+  "_degrees": "Keep postings that accept any of these (only Simplify says; other sources are kept). Any of: Bachelor's, Master's, PhD, MBA, Associate's",
   "degrees": ["Bachelor's"],
 
   "_class_years": "Graduation years you can present yourself as. The first one is the default filter.",
@@ -16,6 +14,35 @@
 
   "_needs_sponsorship": "true if you are an international student (F-1/J-1/OPT). Flags defense contractors, national labs and federal bodies as long shots and hides them by default.",
   "needs_sponsorship": true,
+
+  "_sources": "Where postings come from. Remove a line to drop a source; add board slugs for any employer on Greenhouse/Lever/Ashby (the slug is the word after the company in its job-board URL). Append =Display Name to override how a board is labelled.",
+  "sources": {
+    "simplify": true,
+    "listing_json": ["vanshb03/Summer2027-Internships"],
+    "readme": ["speedyapply/2027-SWE-College-Jobs"],
+    "boards": {
+      "greenhouse": [
+        "stripe=Stripe", "databricks=Databricks", "figma=Figma", "datadog=Datadog", "cloudflare=Cloudflare",
+        "coinbase=Coinbase", "robinhood=Robinhood", "affirm=Affirm", "lyft=Lyft", "pinterest=Pinterest",
+        "roblox=Roblox", "epicgames=Epic Games", "riotgames=Riot Games", "duolingo=Duolingo", "reddit=Reddit",
+        "anthropic=Anthropic", "scaleai=Scale AI", "samsara=Samsara", "vercel=Vercel", "mongodb=MongoDB",
+        "waymo=Waymo", "nuro=Nuro", "spacex=SpaceX",
+        "jumptrading=Jump Trading", "imc=IMC Trading", "optiverus=Optiver", "dvtrading=DV Trading", "virtu=Virtu Financial",
+        "akunacapital=Akuna Capital", "point72=Point72", "schonfeld=Schonfeld", "pdtpartners=PDT Partners",
+        "oldmissioncapital=Old Mission", "transmarketgroup=TransMarket Group", "flowtraders=Flow Traders", "aqr=AQR Capital Management"
+      ],
+      "lever": ["palantir=Palantir", "zoox=Zoox"],
+      "ashby": [
+        "openai=OpenAI", "notion=Notion", "ramp=Ramp", "harvey=Harvey", "perplexity=Perplexity", "cohere=Cohere",
+        "sierra=Sierra", "mercor=Mercor", "hex=Hex", "modal=Modal", "cursor=Cursor", "linear=Linear",
+        "replit=Replit", "supabase=Supabase", "physicalintelligence=Physical Intelligence", "1x=1X"
+      ]
+    }
+  },
+
+  "_source": "Simplify's listings file for your season. For another season, use that repo's .github/scripts/listings.json on its dev branch.",
+  "source": "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json",
+  "source_repo": "SimplifyJobs/Summer2027-Internships",
 
   "_expose": "Who can reach the local site. local = this computer only. tailscale = this computer + your own devices over Tailscale (what the phone widget needs). lan = every device on your network (not recommended on campus wifi).",
   "expose": "tailscale",
