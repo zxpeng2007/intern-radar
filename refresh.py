@@ -48,7 +48,7 @@ def load_config():
         print("Created config.json from config.example.json - edit it to match you.")
     cfg = dict(DEFAULTS)
     if os.path.exists(path):
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8-sig") as f:  # -sig: tolerate the BOM Windows editors add
             user = json.load(f)
         cfg.update({k: v for k, v in user.items() if not k.startswith("_")})
     cfg["class_years"] = [int(y) for y in cfg["class_years"]]

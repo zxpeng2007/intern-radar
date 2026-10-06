@@ -39,7 +39,7 @@ def load_config():
     cfg = {"expose": "tailscale", "port": 8765}
     path = os.path.join(HERE, "config.json")
     if os.path.exists(path):
-        with open(path, encoding="utf-8") as f:
+        with open(path, encoding="utf-8-sig") as f:  # -sig: tolerate the BOM Windows editors add
             cfg.update({k: v for k, v in json.load(f).items() if k in cfg})
     return cfg
 
